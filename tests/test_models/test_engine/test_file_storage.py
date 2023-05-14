@@ -61,6 +61,8 @@ class TestBaseModel(unittest.TestCase):
         # The init will add the models to the storage.__objects
         b1 = BaseModel()
         b2 = BaseModel()
+        b2.name = "Test"
+        b2.save()
         # Saving to storage
         storage.save()
         return (b1, b2)

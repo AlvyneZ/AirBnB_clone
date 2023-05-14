@@ -60,6 +60,7 @@ class FileStorage:
             List of loaded objects inheriting from BaseModel
         """
         from models.base_model import BaseModel
+        from models.user import User
 
         try:
             with open(self.__file_path, "r", encoding="utf-8") as file:
@@ -73,6 +74,7 @@ class FileStorage:
                         # Converts dict entries to the class instances
                         for key, val in dict_objs.items():
                             class_name = val["__class__"]
+                            del(val["__class__"])
                             self.__objects[key] = eval(class_name)(**val)
         except FileNotFoundError:
             pass
