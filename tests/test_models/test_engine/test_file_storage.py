@@ -20,7 +20,6 @@ class TestBaseModel(unittest.TestCase):
 
     Methods:
         tearDown: resets parameters at the end of tests
-        test_file_path: confirms that __file_path has been set appropriately
         test_all: tests the all method of BaseModel class
         test_save: tests the save method of BaseModel class
         test_new: tests the new method of BaseModel class
@@ -34,19 +33,14 @@ class TestBaseModel(unittest.TestCase):
         storage._FileStorage__objects = {}
         return super().tearDown()
 
-    def test_file_path(self):
+    def __backup_og_files(self):
         """
-        Confirms the value of the attribute __file_path
+        For backing up original JSON file
         """
         self.assertEqual(
             storage._FileStorage__file_path, "file.json",
             "The file storage path should be 'file.json'"
         )
-
-    def __backup_og_files(self):
-        """
-        For backing up original JSON file
-        """
         file_existed = False
         if os.path.exists("file.json"):
             os.rename("file.json", "file.json_bkp_test")
