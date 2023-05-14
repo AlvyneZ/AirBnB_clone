@@ -17,107 +17,88 @@ class FileStorage:
         __objects (dictionary): stores all objects by <class name>.id
 
     Methods:
-        to_json_string: Coverts a list of dictionaries to a json string
-        from_json_string: Coverts a json string to a list of dictionaries
-        create: Converts a dictionary to the corresponding class instance
-        save_to_file: Writes a JSON string of list of objects to a file
-        load_from_file: Loads and creates class instances from JSON file
+        all: returns the dictionary __objects
+        new: sets in __objects the obj with key <obj class name>.id
+        save: serializes __objects to the JSON file (path: __file_path)
+        reload: deserializes the JSON file to __objects
+        __objects_to_json: Coverts __objects to a json string
+        __objects_from_json: Coverts a json string to instances in __objects
+        __objects_populate: Converts a dictionary to instances in __objects
     """
 
+    __file_path = "file.json"
+    __objects = {}
 
-    def __init__(self, *args, **kwargs):
+    def all(self):
         """
-        Initializer for setting base identifier
-
-        Args:
-            id (integer): identifier of a base instance
+        Returns the dictionary __objects
         """
-        if id is None:
-            Base.__nb_objects += 1
-            self.id = Base.__nb_objects
-        else:
-            self.id = id
+        return self.__objects
 
-    @staticmethod
-    def to_json_string(list_dictionaries):
+    def new(self, obj):
         """
-        Coverts a list of dictionaries to a json string
+        Adds a new object to the dictionary __objects
+        """
+        key = "{}.{}".format(obj.__class__.__name__, obj.id)
+        self.__objects[key] = obj
 
-        Args:
-            list_dictionaries: object to be converted
+    def __objects_to_json(self):
+        """
+        Coverts __objects (dictionary of BaseModel instances) to
+         a dictionary of instance dictionaries and to a JSON string
 
         Returns:
-            json string representation of list of dicttionaries
+            json string representation of __objects
         """
-        if list_dictionaries is None:
-            return "[]"
-        return json.dumps(list_dictionaries)
+        dict_objs = {}
+        if len(self.__objects) > 0:
+            for key, val in self.__objects.items():
+                dict_objs[key] = val.to_dict()
+        return json.dumps(dict_objs)
 
-    @staticmethod
-    def from_json_string(json_string):
+    def save(self):
         """
-        Coverts a json string to a list of dictionaries
+        serializes __objects to the JSON file (path: __file_path)
+        """
+        with open(self.__file_path, "w", encoding="utf-8") as file:
+            file.write(self.__objects_to_json())
+
+    def __objects_from_json(self, json_string):
+        """
+        Deserializes a JSON string into the __objects attribute
 
         Args:
             json_string: json string to be converted
-
-        Returns:
-            The original jsonified list of dictionaries
         """
-        if json_string is None:
-            return []
-        return json.loads(json_string)
+        self.__objects = {}
+        if json_string is not None:
+            dict_objs = {}
+            dict_objs = json.loads(json_string)
+            if len(dict_objs) > 0:
+                self.__objects_populate(dict_objs)
 
-    @classmethod
-    def create(cls, **dictionary):
+    def __objects_populate(self, dict_objs):
         """
-        Converts a dictionary to the corresponding class instance
+        Converts a dictionary entry to the corresponding class instance
         """
-        from .rectangle import Rectangle
-        from .square import Square
+        from models.base_model import BaseModel
 
-        if cls.__name__ == "Rectangle":
-            obj = Rectangle(1, 1, id=100)
-        elif cls.__name__ == "Square":
-            obj = Square(1, id=100)
-        else:
-            obj = Base(id=100)
-        obj.update(**dictionary)
-        return obj
+        for key, val in dict_objs.items():
+            class_name, id = key.split(".")
+            if class_name == "BaseModel":
+                self.__objects[key] = BaseModel(**val)
 
-    @classmethod
-    def save_to_file(cls, list_objs):
-        """
-        Writes a JSON string representation of list of objects to a file
-
-        Args:
-            list_objs: List of objects inheriting from Base
-        """
-        file_name = "{}.json".format(cls.__name__)
-        if list_objs is None:
-            list_dicts = []
-        else:
-            list_dicts = [obj.to_dictionary() for obj in list_objs]
-        json_str = cls.to_json_string(list_dicts)
-        with open(file_name, "w", encoding="utf-8") as file:
-            file.write(json_str)
-
-    @classmethod
-    def load_from_file(cls):
+    def reload(self):
         """
         Loads JSON representation of class instances from file and creates
-         a list of objects
+         the list of objects
 
         Returns:
-            List of loaded objects inheriting from Base
+            List of loaded objects inheriting from BaseModel
         """
-        file_name = "{}.json".format(cls.__name__)
-
         try:
-            with open(file_name, "r", encoding="utf-8") as file:
+            with open(self.__file_path, "r", encoding="utf-8") as file:
                 content = file.read()
-                list_dicts = cls.from_json_string(content)
+                self.__objects_from_json(content)
         except FileNotFoundError:
-            return []
-
-        return [cls.create(**obj_dict) for obj_dict in list_dicts]
+            pass
