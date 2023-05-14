@@ -4,7 +4,7 @@ This "test_base_model.py" module defines one class:
     TestBaseModel: for testing the functionality of the BaseModel class
 
 Run from project directory using:
-$   python3 -m unittest ./tests/test_base_model.py
+$   python3 -m unittest ./tests/test_models/test_base_model.py
 """
 from datetime import datetime, timedelta
 from uuid import UUID

@@ -4,7 +4,7 @@ This "test_base_model.py" module defines one class:
     TestBaseModel: for testing the functionality of the BaseModel class
 
 Run from project directory using:
-$   python3 -m unittest ./tests/test_file_storage.py
+$   python3 -m unittest ./tests/test_models/test_engine/test_file_storage.py
 """
 from base64 import b32decode
 import os
@@ -22,8 +22,10 @@ class TestBaseModel(unittest.TestCase):
 
     Methods:
         tearDown: resets parameters at the end of tests
-        test_save_to_file: tests the save method of BaseModel class
-        test_load_from_file: tests the reload method of BaseModel class
+        test_all: tests the all method of BaseModel class
+        test_save: tests the save method of BaseModel class
+        test_new: tests the new method of BaseModel class
+        test_reload: tests the reload method of BaseModel class
     """
 
     def tearDown(self):
@@ -32,7 +34,7 @@ class TestBaseModel(unittest.TestCase):
         """
         storage._FileStorage__objects = {}
         return super().tearDown()
-        
+
     def __backup_og_files(self):
         """
         For backing up original JSON file
@@ -68,6 +70,60 @@ class TestBaseModel(unittest.TestCase):
         if os.path.exists("file.json"):
             os.remove("file.json")
 
+    def test_all(self):
+        """
+        Test for all method of BaseModel class
+        """
+        file_existed = self.__backup_og_files()
+        try:
+            storage._FileStorage__objects = {}
+            self.assertDictEqual(
+                storage.all(), {},
+                "Unit test needs to empty __objects"
+            )
+
+            b1, b2 = self.__save_file()
+            objs = storage.all()
+            self.assertEqual(
+                b1.__str__(),
+                objs["BaseModel.{}".format(b1.id)].__str__())
+            self.assertEqual(
+                b2.__str__(),
+                objs["BaseModel.{}".format(b2.id)].__str__())
+        finally:
+            self.__delete_file()
+            self.__restore_og_files(file_existed)
+
+    def test_new(self):
+        """
+        Test for new method of BaseModel class
+        """
+        file_existed = self.__backup_og_files()
+        try:
+            storage._FileStorage__objects = {}
+            self.assertDictEqual(
+                storage._FileStorage__objects, {},
+                "Unit test needs to empty __objects"
+            )
+
+            b1 = BaseModel(
+                id='219c8141-85ca-4f00-923b-5a3b47fc2517',
+                created_at='2023-05-11T21:53:37.103600',
+                updated_at='2023-05-11T21:53:37.103650')
+            self.assertDictEqual(
+                storage._FileStorage__objects, {},
+                "Only new instances should be added to __objects upon init"
+            )
+            storage.new(b1)
+
+            objs = storage._FileStorage__objects
+            self.assertEqual(
+                b1.__str__(),
+                objs["BaseModel.{}".format(b1.id)].__str__())
+        finally:
+            self.__delete_file()
+            self.__restore_og_files(file_existed)
+
     def test_save(self):
         """
         Test for save method of BaseModel class
@@ -76,12 +132,12 @@ class TestBaseModel(unittest.TestCase):
         try:
             storage._FileStorage__objects = {}
             self.assertDictEqual(
-                storage.all(), {},
-                "Unit test needs to empty __objects and all() should reflect"
+                storage._FileStorage__objects, {},
+                "Unit test needs to empty __objects"
             )
 
             b1, b2 = self.__save_file()
-            objs = storage.all()
+            objs = storage._FileStorage__objects
             self.assertEqual(
                 b1.__str__(),
                 objs["BaseModel.{}".format(b1.id)].__str__())
@@ -110,20 +166,20 @@ class TestBaseModel(unittest.TestCase):
         try:
             storage._FileStorage__objects = {}
             self.assertDictEqual(
-                storage.all(), {},
-                "Unit test needs to empty __objects and all() should reflect"
+                storage._FileStorage__objects, {},
+                "Unit test needs to empty __objects"
             )
 
             b1, b2 = self.__save_file()
 
             storage._FileStorage__objects = {}
             self.assertDictEqual(
-                storage.all(), {},
-                "Unit test needs to empty __objects and all() should reflect"
+                storage._FileStorage__objects, {},
+                "Unit test needs to empty __objects"
             )
 
             storage.reload()
-            objs = storage.all()
+            objs = storage._FileStorage__objects
             self.assertEqual(
                 b1.__str__(),
                 objs["BaseModel.{}".format(b1.id)].__str__())
