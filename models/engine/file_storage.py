@@ -21,9 +21,6 @@ class FileStorage:
         new: sets in __objects the obj with key <obj class name>.id
         save: serializes __objects to the JSON file (path: __file_path)
         reload: deserializes the JSON file to __objects
-        __objects_to_json: Coverts __objects to a json string
-        __objects_from_json: Coverts a json string to instances in __objects
-        __objects_populate: Converts a dictionary to instances in __objects
     """
 
     __file_path = "file.json"
@@ -42,50 +39,17 @@ class FileStorage:
         key = "{}.{}".format(obj.__class__.__name__, obj.id)
         self.__objects[key] = obj
 
-    def __objects_to_json(self):
-        """
-        Coverts __objects (dictionary of BaseModel instances) to
-         a dictionary of instance dictionaries and to a JSON string
-
-        Returns:
-            json string representation of __objects
-        """
-        dict_objs = {}
-        if len(self.__objects) > 0:
-            for key, val in self.__objects.items():
-                dict_objs[key] = val.to_dict()
-        return json.dumps(dict_objs)
-
     def save(self):
         """
         serializes __objects to the JSON file (path: __file_path)
         """
         with open(self.__file_path, "w", encoding="utf-8") as file:
-            file.write(self.__objects_to_json())
-
-    def __objects_from_json(self, json_string):
-        """
-        Deserializes a JSON string into the __objects attribute
-
-        Args:
-            json_string: json string to be converted
-        """
-        self.__objects = {}
-        if json_string is not None:
+            # Converting __objects to dict of dictionaries
             dict_objs = {}
-            dict_objs = json.loads(json_string)
-            if len(dict_objs) > 0:
-                self.__objects_populate(dict_objs)
-
-    def __objects_populate(self, dict_objs):
-        """
-        Converts a dictionary entry to the corresponding class instance
-        """
-        from models.base_model import BaseModel
-
-        for key, val in dict_objs.items():
-            class_name = val["__class__"]
-            self.__objects[key] = eval(class_name)(**val)
+            if len(self.__objects) > 0:
+                for key, val in self.__objects.items():
+                    dict_objs[key] = val.to_dict()
+            file.write(json.dumps(dict_objs))
 
     def reload(self):
         """
@@ -95,9 +59,20 @@ class FileStorage:
         Returns:
             List of loaded objects inheriting from BaseModel
         """
+        from models.base_model import BaseModel
+
         try:
             with open(self.__file_path, "r", encoding="utf-8") as file:
-                content = file.read()
-                self.__objects_from_json(content)
+                json_string = file.read()
+                # Converting read string to dictionary of dicts
+                self.__objects = {}
+                if json_string is not None:
+                    dict_objs = {}
+                    dict_objs = json.loads(json_string)
+                    if len(dict_objs) > 0:
+                        # Converts dict entries to the class instances
+                        for key, val in dict_objs.items():
+                            class_name = val["__class__"]
+                            self.__objects[key] = eval(class_name)(**val)
         except FileNotFoundError:
             pass
