@@ -6,13 +6,11 @@ This "test_base_model.py" module defines one class:
 Run from project directory using:
 $   python3 -m unittest ./tests/test_models/test_engine/test_file_storage.py
 """
-from base64 import b32decode
 import os
 import json
 
 import unittest
 
-from models.engine.file_storage import FileStorage
 from models.base_model import BaseModel, storage
 
 
@@ -22,6 +20,7 @@ class TestBaseModel(unittest.TestCase):
 
     Methods:
         tearDown: resets parameters at the end of tests
+        test_file_path: confirms that __file_path has been set appropriately
         test_all: tests the all method of BaseModel class
         test_save: tests the save method of BaseModel class
         test_new: tests the new method of BaseModel class
@@ -34,6 +33,15 @@ class TestBaseModel(unittest.TestCase):
         """
         storage._FileStorage__objects = {}
         return super().tearDown()
+
+    def test_file_path(self):
+        """
+        Confirms the value of the attribute __file_path
+        """
+        self.assertEqual(
+            storage._FileStorage__file_path, "file.json",
+            "The file storage path should be 'file.json'"
+        )
 
     def __backup_og_files(self):
         """

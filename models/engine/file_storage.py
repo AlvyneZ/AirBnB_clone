@@ -84,9 +84,8 @@ class FileStorage:
         from models.base_model import BaseModel
 
         for key, val in dict_objs.items():
-            class_name, id = key.split(".")
-            if class_name == "BaseModel":
-                self.__objects[key] = BaseModel(**val)
+            class_name = val["__class__"]
+            self.__objects[key] = eval(class_name)(**val)
 
     def reload(self):
         """
