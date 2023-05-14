@@ -11,16 +11,13 @@ import unittest
 from models.user import User
 
 
-class TestBaseModel(unittest.TestCase):
+class TestUser(unittest.TestCase):
     """
-    Class for testing the functionality of the BaseModel class
+    Class for testing the functionality of the User class
 
     Methods:
         tearDown: resets parameters at the end of tests
-        test_init: tests BaseModel creation
-        test_str: tests __str__ method
-        test_save: tests save method
-        test_to_dict: tests to_dict method
+        test_init: tests User creation
     """
 
     def test_init(self):
